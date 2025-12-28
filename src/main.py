@@ -1,4 +1,6 @@
 from employee import Employee
+import csv
+import json
 
 class EmployeeManagement:
 
@@ -97,11 +99,85 @@ class EmployeeManagement:
     else:
       print("Employee not found!")
 
+  def load_from_csv(self, filename: str):
+    try:
+      with open(filename, mode="r") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+          emp_id = int(row["emp_id"])
+          name = row["name"]
+          department = row["department"]
+          role = row["role"]
+          basic_salary = float(row["basic_salary"])
+          employee = Employee(emp_id, name, department, role, basic_salary)
+          self.employees[emp_id] = employee
+      print(f"Employee data loaded from CSV successfully.")
+    except FileNotFoundError:
+      print(f"File {filename} not found.")
+    except ValueError as ve:
+      print(f"Value error: {ve}")
+    except Exception as e:
+      print(f"An error occurred: {e}")
+
+  def save_to_csv(self, filename: str):
+    with open(filename, mode="w", newline="") as file:
+      writer = csv.writer(file)
+      writer.writerow(["emp_id", "name", "department", "role", "basic_salary"])
+      for employee in self.employees.values():
+        writer.writerow([
+          employee.emp_id,
+          employee.name,
+          employee.department,
+          employee.role,
+          employee.basic_salary
+        ])
+    print(f"Employee data saved to CSV successfully.")
+
+
+
+  def load_from_json(self, filename: str):
+    try:
+      with open(filename, mode="r") as file:
+        employee_data = json.load(file)
+        for emp_id, data in employee_data.items():
+          emp_id = int(emp_id)
+          name = data["name"]
+          department = data["department"]
+          role = data["role"]
+          basic_salary = float(data["basic_salary"])
+          employee = Employee(emp_id, name, department, role, basic_salary)
+          self.employees[emp_id] = employee
+      print(f"Employee data loaded from JSON successfully.")
+    except FileNotFoundError:
+      print(f"File {filename} not found.")
+    except ValueError as ve:
+      print(f"Value error: {ve}")
+    except Exception as e:
+      print(f"An error occurred: {e}")
+
+  def save_to_json(self, filename: str):
+    employee_data = {}
+    for emp_id, employee in self.employees.items():
+      employee_data[emp_id] = {
+        "name": employee.name,
+        "department": employee.department,
+        "role": employee.role,
+        "basic_salary": employee.basic_salary
+      }
+      with open(filename, mode="w") as file:
+        json.dump(employee_data, file, indent=4)
+    print(f"Employee data saved to JSON successfully.")
+    pass
+
 
 emp = EmployeeManagement()
 emp.greet()
 if __name__ == "__main__":
+  emp.load_from_csv("data/employees.csv")
+  emp.load_from_json("data/employees.json")
   emp.main()
+  emp.save_to_csv("data/employees.csv")
+  emp.save_to_json("data/employees.json")
 
 
 
