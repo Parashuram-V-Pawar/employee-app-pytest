@@ -1,4 +1,4 @@
-from employee import Employee
+from src.employee import Employee
 import csv
 import json
 
@@ -15,7 +15,19 @@ class EmployeeManagement:
       choice = int(input("Enter your choice: "))
       match choice:
         case 1:
-          emp.add_employee()
+          emp_id = int(input("Enter Employee ID: "))
+          if emp_id in self.employees:
+            print("Employee with this ID already exists!")
+            return
+          name = input("Enter Name: ")
+          department = input("Enter Department: ")
+          role = input("Enter Role: ")
+          basic_salary = float(input("Enter Basic Salary: "))
+          if basic_salary < 0:
+            print("Basic Salary cannot be negative.")
+            return
+          emp.add_employee(emp_id, name, department, role, basic_salary)
+
         case 2:
           emp_id = int(input("Enter Employee ID to view: "))
           emp.view_employee(emp_id)
@@ -32,18 +44,7 @@ class EmployeeManagement:
 
 
 
-  def add_employee(self):
-    emp_id = int(input("Enter Employee ID: "))
-    if emp_id in self.employees:
-      print("Employee with this ID already exists!")
-      return
-    name = input("Enter Name: ")
-    department = input("Enter Department: ")
-    role = input("Enter Role: ")
-    basic_salary = float(input("Enter Basic Salary: "))
-    if basic_salary < 0:
-      print("Basic Salary cannot be negative.")
-      return
+  def add_employee(self, emp_id, name, department, role, basic_salary):
     employee = Employee(emp_id, name, department, role, basic_salary)
     self.employees[emp_id] = employee
     print("Employee added successfully!")
@@ -54,43 +55,43 @@ class EmployeeManagement:
     else:
       print("Employee not found!")
 
-  def net_salary(self, emp_id):
+  def net_salary(self, emp_id, over_time_hours=0):
     if emp_id not in self.employees:
       print("Employee not found!")
       return
-    over_time_hours = int(input("Enter number of overtime hours worked: "))
     basic_salary = self.employees[emp_id].basic_salary
-    allowance = self.clac_allowances(over_time_hours)
+    allowance = self.calc_allowances(over_time_hours)
     deduction = self.calc_deduction(basic_salary)
     basic_salary = self.employees[emp_id].basic_salary
     net_salary = basic_salary + allowance - deduction
     print(f"Net Salary for Employee ID {emp_id} is: {net_salary}")
 
-  def clac_allowances(self, over_time_hours):
+  def calc_allowances(self, over_time_hours=0):
     allowance = 0
-    if over_time_hours < 0:
-      print("Overtime hours cannot be negative.")
-      return
-    allowance += over_time_hours * 1200
-    return allowance
+    # over_time_hours = int(input("Enter number of overtime hours worked: "))
+    if over_time_hours > 0:
+      allowance += over_time_hours * 800
+      return allowance
+    else:
+      raise ValueError("Overtime hours cannot be negative.")
 
-  def calc_deduction(self, basic_salary):
-    
-    late_days = int(input("Enter number of late days: "))
-    absent_days = int(input("Enter number of absent days: "))
+  def calc_deduction(self, basic_salary, late_days=0, absent_days=0):
+    # late_days = int(input("Enter number of late days: "))
+    # absent_days = int(input("Enter number of absent days: "))
     if late_days < 0 or absent_days < 0:
-      print("Days cannot be negative.")
-      return
+      raise ValueError("Days cannot be negative.")
+    
     deduction = 0
     if late_days > 5 and late_days <= 10:
       deduction += 5
     elif late_days > 10 :
       deduction += 10
-
     if absent_days > 2:
       deduction += 5
+
     salary_deduction = (basic_salary * (deduction/100))
     return salary_deduction
+  
   
   def delete_employee(self, emp_id):
     if emp_id in self.employees:
@@ -170,9 +171,10 @@ class EmployeeManagement:
     pass
 
 
-emp = EmployeeManagement()
-emp.greet()
+
 if __name__ == "__main__":
+  emp = EmployeeManagement()
+  emp.greet()
   emp.load_from_csv("data/employees.csv")
   emp.load_from_json("data/employees.json")
   emp.main()
